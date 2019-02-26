@@ -6,7 +6,9 @@ import datetime
 from collections import Counter
 from operator import attrgetter
 
+from django.contrib.contenttypes.models import ContentType
 from django.db import models
+from django.db.models import QuerySet
 from django.utils.timezone import now
 
 from aldryn_apphooks_config.managers.base import ManagerMixin, QuerySetMixin
@@ -102,7 +104,18 @@ class RelatedManager(ManagerMixin, TranslatableManager):
         if not articles:
             # return empty iterable early not to perform useless requests
             return []
-        kwargs = TaggedItem.bulk_lookup_kwargs(articles)
+
+        if isinstance(articles, QuerySet):
+            # Can do a real object_id IN (SELECT ..) query.
+            kwargs = {
+                "object_id__in": articles,
+                "content_type": ContentType.objects.get_for_model(articles.model),
+            }
+        else:
+            kwargs = {
+                "object_id__in": [instance.pk for instance in articles],
+                "content_type": ContentType.objects.get_for_model(articles[0]),
+            }
 
         # aggregate and sort
         counted_tags = dict(TaggedItem.objects
