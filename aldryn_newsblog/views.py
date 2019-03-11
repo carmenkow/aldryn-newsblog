@@ -113,6 +113,9 @@ class ArticleDetail(AppConfigMixin, AppHookCheckMixin, PreviewModeMixin,
         if not hasattr(self, 'object'):
             self.object = self.get_object()
         set_language_changer(request, self.object.get_absolute_url)
+        # submit object to cms toolbar to get current language switcher behavior
+        if hasattr(request, 'toolbar'):
+            request.toolbar.set_object(self.object)
         url = self.object.get_absolute_url()
         if self.config.non_permalink_handling == 200 or request.path == url:
             # Continue as normal

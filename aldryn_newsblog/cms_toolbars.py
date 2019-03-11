@@ -3,7 +3,7 @@
 from __future__ import unicode_literals
 
 from django.core.exceptions import ImproperlyConfigured
-from django.urls import reverse
+from django.urls import reverse, resolve
 from django.utils.translation import get_language_from_request, override
 from django.utils.translation import ugettext as _
 
@@ -52,7 +52,7 @@ class NewsBlogToolbar(CMSToolbar):
 
         user = getattr(self.request, 'user', None)
         try:
-            view_name = self.request.resolver_match.view_name
+            view_name = resolve(self.request.toolbar.request_path).view_name
         except AttributeError:
             view_name = None
 
